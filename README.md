@@ -31,21 +31,23 @@ A zero-config interactive CLI that scaffolds a production-ready Flutter + GetX b
 
 ## Installation
 
-### Option 1 — One-line install (recommended)
+> **Platform support:** macOS and Linux only. Windows users must use [WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
 
-Downloads the script and installs it globally so you can run `create_app` from anywhere:
+### Option 1 — One-line global install (recommended)
 
+Downloads the script and installs it globally so you can run `create_app` from any directory.
+
+**macOS / Linux:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/nuhanchowdhurylinkdin-a11y/Getx-starter-cli/main/create_app -o /usr/local/bin/create_app && chmod +x /usr/local/bin/create_app
+sudo curl -fsSL https://raw.githubusercontent.com/nuhanchowdhurylinkdin-a11y/Getx-starter-cli/main/create_app -o /usr/local/bin/create_app && sudo chmod +x /usr/local/bin/create_app
 ```
 
-Then just run:
-
+Then just run from anywhere:
 ```bash
 create_app
 ```
 
-### Option 2 — Download and run locally
+### Option 2 — Download and run locally (no sudo)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/nuhanchowdhurylinkdin-a11y/Getx-starter-cli/main/create_app -o create_app && chmod +x create_app && ./create_app
