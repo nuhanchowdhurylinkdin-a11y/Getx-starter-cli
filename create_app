@@ -1,0 +1,1270 @@
+#!/bin/bash
+
+# ─── ANSI Colors ──────────────────────────────────────────────
+R='\033[0;31m'    # Red
+G='\033[0;32m'    # Green
+B='\033[0;34m'    # Blue
+C='\033[0;36m'    # Cyan
+M='\033[0;35m'    # Magenta
+Y='\033[1;33m'    # Yellow
+W='\033[1;37m'    # White bold
+DIM='\033[2m'     # Dim
+BOLD='\033[1m'    # Bold
+NC='\033[0m'      # No Color
+CHECK="${G}✓${NC}"
+CROSS="${R}✗${NC}"
+ARROW="${C}→${NC}"
+
+# ─── Banner ───────────────────────────────────────────────────
+clear
+echo ""
+echo -e "${B}╔══════════════════════════════════════════════════╗${NC}"
+echo -e "${B}║${NC}  ${M}${BOLD}  GetX Starter CLI${NC}  ${DIM}v1.0.0${NC}                      ${B}║${NC}"
+echo -e "${B}║${NC}  ${DIM}Flutter boilerplate generator with GetX${NC}         ${B}║${NC}"
+echo -e "${B}╚══════════════════════════════════════════════════╝${NC}"
+echo ""
+
+# ─── Step 1: Project Name ─────────────────────────────────────
+echo -e "${Y}${BOLD}STEP 1: Project Name${NC}"
+echo -e "${DIM}Must be lowercase, use underscores, start with a letter${NC}"
+echo -e "${DIM}Example: my_awesome_app${NC}"
+echo ""
+
+while true; do
+  echo -ne "${C}${BOLD}  Project name: ${NC}"
+  read PROJECT_NAME
+
+  if [ -z "$PROJECT_NAME" ]; then
+    echo -e "  ${CROSS} ${R}Project name cannot be empty${NC}"
+    continue
+  fi
+
+  if [[ ! "$PROJECT_NAME" =~ ^[a-z][a-z0-9_]*$ ]]; then
+    echo -e "  ${CROSS} ${R}Invalid name!${NC} Must be ${W}lowercase${NC}, use ${W}underscores${NC}, start with a ${W}letter${NC}"
+    echo -e "    ${DIM}No spaces, hyphens, uppercase, or special characters${NC}"
+    continue
+  fi
+
+  if [[ ${#PROJECT_NAME} -lt 2 ]]; then
+    echo -e "  ${CROSS} ${R}Name must be at least 2 characters${NC}"
+    continue
+  fi
+
+  if [[ "$PROJECT_NAME" =~ ^(test|flutter|dart|android|ios|web|linux|macos|windows)$ ]]; then
+    echo -e "  ${CROSS} ${R}'${PROJECT_NAME}' is a reserved name${NC}"
+    continue
+  fi
+
+  echo -e "  ${CHECK} ${G}Project name: ${W}${PROJECT_NAME}${NC}"
+  break
+done
+
+echo ""
+
+# ─── Step 2: App Display Name ─────────────────────────────────
+echo -e "${Y}${BOLD}STEP 2: App Display Name${NC}"
+echo -e "${DIM}The name shown under the app icon (e.g. My App)${NC}"
+echo ""
+
+echo -ne "${C}${BOLD}  Display name: ${NC}"
+read APP_DISPLAY_NAME
+
+if [ -z "$APP_DISPLAY_NAME" ]; then
+  APP_DISPLAY_NAME="$PROJECT_NAME"
+fi
+echo -e "  ${CHECK} ${G}Display name: ${W}${APP_DISPLAY_NAME}${NC}"
+
+echo ""
+
+# ─── Step 3: Organization ─────────────────────────────────────
+echo -e "${Y}${BOLD}STEP 3: Organization (Bundle ID prefix)${NC}"
+echo -e "${DIM}Reverse domain format, e.g. com.example${NC}"
+echo ""
+
+while true; do
+  echo -ne "${C}${BOLD}  Organization: ${NC}"
+  read ORG_NAME
+
+  if [ -z "$ORG_NAME" ]; then
+    echo -e "  ${CROSS} ${R}Organization cannot be empty${NC}"
+    continue
+  fi
+
+  if [[ ! "$ORG_NAME" =~ ^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)+$ ]]; then
+    echo -e "  ${CROSS} ${R}Invalid format!${NC} Use reverse domain like ${W}com.company${NC}"
+    continue
+  fi
+
+  echo -e "  ${CHECK} ${G}Organization: ${W}${ORG_NAME}${NC}"
+  echo -e "  ${DIM}Bundle ID will be: ${ORG_NAME}.${PROJECT_NAME}${NC}"
+  break
+done
+
+echo ""
+
+# ─── Step 4: Platforms ────────────────────────────────────────
+echo -e "${Y}${BOLD}STEP 4: Target Platforms${NC}"
+echo -e "${DIM}Select platforms (comma-separated numbers)${NC}"
+echo ""
+echo -e "  ${W}1${NC}) ${G}Android${NC}"
+echo -e "  ${W}2${NC}) ${G}iOS${NC}"
+echo -e "  ${W}3${NC}) ${B}Web${NC}"
+echo -e "  ${W}4${NC}) ${M}macOS${NC}"
+echo -e "  ${W}5${NC}) ${C}Windows${NC}"
+echo -e "  ${W}6${NC}) ${Y}Linux${NC}"
+echo ""
+
+while true; do
+  echo -ne "${C}${BOLD}  Choose platforms (e.g. 1,2 or 1,2,3): ${NC}"
+  read PLATFORM_INPUT
+
+  if [ -z "$PLATFORM_INPUT" ]; then
+    echo -e "  ${CROSS} ${R}Please select at least one platform${NC}"
+    continue
+  fi
+
+  PLATFORMS=""
+  PLATFORM_DISPLAY=""
+  VALID=true
+
+  IFS=',' read -ra NUMS <<< "$PLATFORM_INPUT"
+  for num in "${NUMS[@]}"; do
+    num=$(echo "$num" | tr -d ' ')
+    case $num in
+      1) PLATFORMS+="android,"; PLATFORM_DISPLAY+="${G}Android${NC} ";;
+      2) PLATFORMS+="ios,"; PLATFORM_DISPLAY+="${G}iOS${NC} ";;
+      3) PLATFORMS+="web,"; PLATFORM_DISPLAY+="${B}Web${NC} ";;
+      4) PLATFORMS+="macos,"; PLATFORM_DISPLAY+="${M}macOS${NC} ";;
+      5) PLATFORMS+="windows,"; PLATFORM_DISPLAY+="${C}Windows${NC} ";;
+      6) PLATFORMS+="linux,"; PLATFORM_DISPLAY+="${Y}Linux${NC} ";;
+      *) echo -e "  ${CROSS} ${R}Invalid option: ${num}${NC}"; VALID=false; break;;
+    esac
+  done
+
+  if [ "$VALID" = false ]; then
+    continue
+  fi
+
+  PLATFORMS=${PLATFORMS%,}
+  echo -e "  ${CHECK} Platforms: ${PLATFORM_DISPLAY}"
+  break
+done
+
+echo ""
+
+# ─── Confirmation ─────────────────────────────────────────────
+echo -e "${B}══════════════════════════════════════════════════${NC}"
+echo -e "  ${W}${BOLD}Summary${NC}"
+echo -e "  ${ARROW} Project:      ${W}${PROJECT_NAME}${NC}"
+echo -e "  ${ARROW} Display Name: ${W}${APP_DISPLAY_NAME}${NC}"
+echo -e "  ${ARROW} Bundle ID:    ${W}${ORG_NAME}.${PROJECT_NAME}${NC}"
+echo -e "  ${ARROW} Platforms:    ${PLATFORM_DISPLAY}"
+echo -e "${B}══════════════════════════════════════════════════${NC}"
+echo ""
+echo -ne "${Y}${BOLD}  Proceed? (Y/n): ${NC}"
+read CONFIRM
+
+if [[ "$CONFIRM" =~ ^[nN] ]]; then
+  echo -e "\n  ${CROSS} ${R}Cancelled.${NC}\n"
+  exit 0
+fi
+
+echo ""
+
+# ─── Step 5: Create Flutter Project ──────────────────────────
+echo -e "${M}${BOLD}Creating Flutter project...${NC}"
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+OUTPUT_DIR="$(pwd)"
+
+if [ -d "$PROJECT_NAME" ]; then
+  echo -e "  ${Y}Directory '${PROJECT_NAME}' already exists.${NC}"
+  echo -ne "  ${C}${BOLD}Overwrite? (y/N): ${NC}"
+  read OVERWRITE
+  if [[ "$OVERWRITE" =~ ^[yY] ]]; then
+    rm -rf "$PROJECT_NAME"
+    echo -e "  ${CHECK} ${G}Removed existing directory${NC}"
+  else
+    echo -e "\n  ${CROSS} ${R}Cancelled. Remove the directory manually or choose a different name.${NC}\n"
+    exit 1
+  fi
+fi
+
+FLUTTER_OUTPUT=$(flutter create "$PROJECT_NAME" \
+  --org "$ORG_NAME" \
+  --platforms "$PLATFORMS" \
+  --no-pub 2>&1)
+FLUTTER_EXIT=$?
+
+if [ $FLUTTER_EXIT -ne 0 ] || [ ! -d "$PROJECT_NAME" ]; then
+  echo -e "  ${CROSS} ${R}Failed to create Flutter project${NC}"
+  echo -e "  ${DIM}${FLUTTER_OUTPUT}${NC}"
+  exit 1
+fi
+
+echo -e "  ${CHECK} ${G}Flutter project created${NC}"
+
+PROJECT_DIR="${OUTPUT_DIR}/${PROJECT_NAME}"
+
+# ─── Step 6: Create Directory Structure ──────────────────────
+echo -e "${M}${BOLD}Setting up project structure...${NC}"
+
+mkdir -p "$PROJECT_DIR/lib/core/bindings"
+mkdir -p "$PROJECT_DIR/lib/core/common/styles"
+mkdir -p "$PROJECT_DIR/lib/core/common/widgets"
+mkdir -p "$PROJECT_DIR/lib/core/controller"
+mkdir -p "$PROJECT_DIR/lib/core/models"
+mkdir -p "$PROJECT_DIR/lib/core/services"
+mkdir -p "$PROJECT_DIR/lib/core/utils/constants"
+mkdir -p "$PROJECT_DIR/lib/core/utils/helpers"
+mkdir -p "$PROJECT_DIR/lib/core/utils/theme/custom_themes"
+mkdir -p "$PROJECT_DIR/lib/features/home/controller"
+mkdir -p "$PROJECT_DIR/lib/features/home/views/screens"
+mkdir -p "$PROJECT_DIR/lib/routes"
+
+echo -e "  ${CHECK} ${G}Directory structure created${NC}"
+
+# ─── Step 7: Write Core Files ────────────────────────────────
+echo -e "${M}${BOLD}Generating core files...${NC}"
+
+PKG="$PROJECT_NAME"
+
+# --- .env ---
+cat > "$PROJECT_DIR/.env" << 'ENVEOF'
+BASE_URL=https://your-api.example.com
+ENVEOF
+
+# --- .gitignore append ---
+cat >> "$PROJECT_DIR/.gitignore" << 'GIEOF'
+
+# Environment
+.env
+GIEOF
+
+# --- api_constants.dart ---
+cat > "$PROJECT_DIR/lib/core/utils/constants/api_constants.dart" << 'EOF'
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+class ApiConstants {
+  ApiConstants._();
+
+  static String get baseUrl {
+    final url = dotenv.env['BASE_URL'];
+    assert(url != null && url.isNotEmpty, 'BASE_URL is not set in .env');
+    return url!;
+  }
+
+  // Add your API endpoints here
+  // static String get login => '$baseUrl/auth/login';
+}
+EOF
+
+# --- colors.dart ---
+cat > "$PROJECT_DIR/lib/core/utils/constants/colors.dart" << 'EOF'
+import 'package:flutter/material.dart';
+
+class AppColors {
+  AppColors._();
+
+  static const Color primary = Color(0xFF0F58BD);
+  static const Color secondary = Color(0xFFFEC601);
+
+  static const Color textPrimary = Color(0xFF212121);
+  static const Color textSecondary = Color(0xFF757575);
+
+  static const Color backgroundLight = Color(0xFFF6F7F8);
+  static const Color backgroundDark = Color(0xFF121212);
+
+  static const Color success = Color(0xFF4CAF50);
+  static const Color warning = Color(0xFFFFA726);
+  static const Color error = Color(0xFFF44336);
+  static const Color info = Color(0xFF29B6F6);
+}
+EOF
+
+# --- response_data.dart ---
+cat > "$PROJECT_DIR/lib/core/models/response_data.dart" << 'EOF'
+class ResponseData {
+  final bool isSuccess;
+  final int statusCode;
+  final String errorMessage;
+  final dynamic responseData;
+
+  ResponseData({
+    required this.isSuccess,
+    required this.statusCode,
+    required this.errorMessage,
+    required this.responseData,
+  });
+}
+EOF
+
+# --- storage_service.dart ---
+cat > "$PROJECT_DIR/lib/core/services/storage_service.dart" << 'EOF'
+import 'package:shared_preferences/shared_preferences.dart';
+
+class StorageService {
+  static const String _accessTokenKey = 'access_token';
+  static const String _refreshTokenKey = 'refresh_token';
+  static const String _idKey = 'userId';
+  static const String _nameKey = 'fullName';
+  static const String _emailKey = 'email';
+  static const String _themeModeKey = 'themeMode';
+
+  static SharedPreferences? _preferences;
+
+  static Future<void> init() async {
+    _preferences = await SharedPreferences.getInstance();
+  }
+
+  static bool hasToken() =>
+      _preferences?.getString(_accessTokenKey) != null;
+
+  static String? get accessToken => _preferences?.getString(_accessTokenKey);
+  static String? get refreshToken => _preferences?.getString(_refreshTokenKey);
+  static String? get userId => _preferences?.getString(_idKey);
+  static String? get fullName => _preferences?.getString(_nameKey);
+  static String? get email => _preferences?.getString(_emailKey);
+
+  static Future<void> saveUserSession({
+    required String id,
+    required String fullName,
+    required String email,
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    await _preferences?.setString(_idKey, id);
+    await _preferences?.setString(_nameKey, fullName);
+    await _preferences?.setString(_emailKey, email);
+    await _preferences?.setString(_accessTokenKey, accessToken);
+    await _preferences?.setString(_refreshTokenKey, refreshToken);
+  }
+
+  static Future<void> updateTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    await _preferences?.setString(_accessTokenKey, accessToken);
+    await _preferences?.setString(_refreshTokenKey, refreshToken);
+  }
+
+  static Future<void> logoutUser() async {
+    await _preferences?.remove(_accessTokenKey);
+    await _preferences?.remove(_refreshTokenKey);
+    await _preferences?.remove(_idKey);
+    await _preferences?.remove(_nameKey);
+    await _preferences?.remove(_emailKey);
+  }
+
+  static String get themeMode =>
+      _preferences?.getString(_themeModeKey) ?? 'system';
+
+  static Future<void> setThemeMode(String mode) async {
+    await _preferences?.setString(_themeModeKey, mode);
+  }
+}
+EOF
+
+# --- network_caller.dart ---
+cat > "$PROJECT_DIR/lib/core/services/network_caller.dart" << NEOF
+import 'dart:async';
+import 'dart:convert';
+import 'dart:developer';
+import 'package:get/get.dart' hide Response, MultipartFile;
+import 'package:http/http.dart';
+
+import '../models/response_data.dart';
+import '../utils/constants/api_constants.dart';
+import '../services/storage_service.dart';
+
+class NetworkCaller {
+  final int timeoutDuration = 40;
+
+  Map<String, String> _buildHeaders({String? token}) {
+    return {
+      if (token != null) 'Authorization': 'Bearer \$token',
+      'Content-Type': 'application/json',
+    };
+  }
+
+  Future<ResponseData> getRequest(String url, {String? token}) async {
+    log('GET Request: \$url');
+    try {
+      final Response response = await get(
+        Uri.parse(url),
+        headers: _buildHeaders(token: token ?? StorageService.accessToken),
+      ).timeout(Duration(seconds: timeoutDuration));
+      return _handleResponse(response);
+    } catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  Future<ResponseData> postRequest(String url,
+      {Map<String, dynamic>? body, String? token}) async {
+    log('POST Request: \$url');
+    try {
+      final Response response = await post(
+        Uri.parse(url),
+        headers: _buildHeaders(token: token ?? StorageService.accessToken),
+        body: jsonEncode(body),
+      ).timeout(Duration(seconds: timeoutDuration));
+      return _handleResponse(response);
+    } catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  Future<ResponseData> patchRequest(String url,
+      {Map<String, dynamic>? body, String? token}) async {
+    log('PATCH Request: \$url');
+    try {
+      final Response response = await patch(
+        Uri.parse(url),
+        headers: _buildHeaders(token: token ?? StorageService.accessToken),
+        body: jsonEncode(body),
+      ).timeout(Duration(seconds: timeoutDuration));
+      return _handleResponse(response);
+    } catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  Future<ResponseData> deleteRequest(String url, {String? token}) async {
+    log('DELETE Request: \$url');
+    try {
+      final Response response = await delete(
+        Uri.parse(url),
+        headers: _buildHeaders(token: token ?? StorageService.accessToken),
+      ).timeout(Duration(seconds: timeoutDuration));
+      return _handleResponse(response);
+    } catch (e) {
+      return _handleError(e);
+    }
+  }
+
+  ResponseData _handleResponse(Response response) {
+    log('Response Status: \${response.statusCode}');
+    log('Response Body: \${response.body}');
+
+    dynamic decodedResponse;
+    try {
+      decodedResponse = jsonDecode(response.body);
+    } on FormatException {
+      return ResponseData(
+        isSuccess: false,
+        statusCode: response.statusCode,
+        responseData: response.body,
+        errorMessage: 'Invalid response from server.',
+      );
+    }
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      if (decodedResponse['success'] == true) {
+        return ResponseData(
+          isSuccess: true,
+          statusCode: response.statusCode,
+          responseData: decodedResponse,
+          errorMessage: '',
+        );
+      }
+    }
+
+    return ResponseData(
+      isSuccess: false,
+      statusCode: response.statusCode,
+      responseData: decodedResponse,
+      errorMessage: decodedResponse['message'] ?? 'An error occurred',
+    );
+  }
+
+  ResponseData _handleError(dynamic error) {
+    log('Request Error: \$error');
+    if (error is TimeoutException) {
+      return ResponseData(
+        isSuccess: false,
+        statusCode: 408,
+        responseData: '',
+        errorMessage: 'Request timeout. Please try again.',
+      );
+    }
+    return ResponseData(
+      isSuccess: false,
+      statusCode: 500,
+      responseData: '',
+      errorMessage: 'Unexpected error occurred.',
+    );
+  }
+}
+NEOF
+
+# --- global_text_style.dart ---
+cat > "$PROJECT_DIR/lib/core/common/styles/global_text_style.dart" << 'EOF'
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+TextStyle getTextStyle({
+  double fontSize = 14.0,
+  FontWeight fontWeight = FontWeight.w400,
+  double lineHeight = 1.4,
+  TextAlign textAlign = TextAlign.center,
+  Color color = Colors.black,
+}) {
+  return GoogleFonts.inter(
+    fontSize: fontSize.sp,
+    fontWeight: fontWeight,
+    height: lineHeight,
+    color: color,
+  );
+}
+EOF
+
+# --- app_helper.dart ---
+cat > "$PROJECT_DIR/lib/core/utils/helpers/app_helper.dart" << 'EOF'
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+
+class AppHelperFunctions {
+  AppHelperFunctions._();
+
+  static void showSnackBar(String message, {ContentType? type}) {
+    final snackBar = SnackBar(
+      elevation: 0,
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: Colors.transparent,
+      content: AwesomeSnackbarContent(
+        title: _getTitleForType(type ?? ContentType.failure),
+        message: message,
+        contentType: type ?? ContentType.failure,
+      ),
+    );
+    ScaffoldMessenger.of(Get.context!)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(snackBar);
+  }
+
+  static void showSuccessSnackBar(String message) =>
+      showSnackBar(message, type: ContentType.success);
+
+  static void showErrorSnackBar(String message) =>
+      showSnackBar(message, type: ContentType.failure);
+
+  static void showWarningSnackBar(String message) =>
+      showSnackBar(message, type: ContentType.warning);
+
+  static String _getTitleForType(ContentType type) {
+    if (type == ContentType.success) return 'Success';
+    if (type == ContentType.failure) return 'Error';
+    if (type == ContentType.warning) return 'Warning';
+    return 'Notice';
+  }
+
+  static String getFormattedDate(DateTime date,
+      {String format = 'dd MMM yyyy'}) {
+    return DateFormat(format).format(date);
+  }
+}
+EOF
+
+# --- app_colors_extension.dart ---
+cat > "$PROJECT_DIR/lib/core/utils/theme/app_colors_extension.dart" << 'EOF'
+import 'package:flutter/material.dart';
+
+class AppColorsExtension extends ThemeExtension<AppColorsExtension> {
+  final Color cardBg;
+  final Color textPrimary;
+  final Color textSecondary;
+  final Color textHint;
+  final Color textBody;
+  final Color border;
+  final Color borderSubtle;
+  final Color fieldBg;
+  final Color tagBg;
+  final Color shimmer;
+  final Color iconBg;
+  final Color navBarBg;
+  final Color shadow;
+
+  const AppColorsExtension({
+    required this.cardBg,
+    required this.textPrimary,
+    required this.textSecondary,
+    required this.textHint,
+    required this.textBody,
+    required this.border,
+    required this.borderSubtle,
+    required this.fieldBg,
+    required this.tagBg,
+    required this.shimmer,
+    required this.iconBg,
+    required this.navBarBg,
+    required this.shadow,
+  });
+
+  static const light = AppColorsExtension(
+    cardBg: Colors.white,
+    textPrimary: Color(0xFF111418),
+    textSecondary: Color(0xFF6B7280),
+    textHint: Color(0xFF9CA3AF),
+    textBody: Color(0xFF334155),
+    border: Color(0xFFE5E7EB),
+    borderSubtle: Color(0xFFDBE0E6),
+    fieldBg: Colors.white,
+    tagBg: Color(0xFFF1F5F9),
+    shimmer: Color(0xFFE5E7EB),
+    iconBg: Color(0xFFF6F7F8),
+    navBarBg: Colors.white,
+    shadow: Color(0x0F000000),
+  );
+
+  static const dark = AppColorsExtension(
+    cardBg: Color(0xFF1E1E1E),
+    textPrimary: Color(0xFFE2E8F0),
+    textSecondary: Color(0xFF9CA3AF),
+    textHint: Color(0xFF6B7280),
+    textBody: Color(0xFFCBD5E1),
+    border: Color(0xFF374151),
+    borderSubtle: Color(0xFF2D3748),
+    fieldBg: Color(0xFF1E1E1E),
+    tagBg: Color(0xFF2D3748),
+    shimmer: Color(0xFF374151),
+    iconBg: Color(0xFF1A2332),
+    navBarBg: Color(0xFF1E1E1E),
+    shadow: Color(0x33000000),
+  );
+
+  @override
+  AppColorsExtension copyWith({
+    Color? cardBg, Color? textPrimary, Color? textSecondary,
+    Color? textHint, Color? textBody, Color? border,
+    Color? borderSubtle, Color? fieldBg, Color? tagBg,
+    Color? shimmer, Color? iconBg, Color? navBarBg, Color? shadow,
+  }) {
+    return AppColorsExtension(
+      cardBg: cardBg ?? this.cardBg,
+      textPrimary: textPrimary ?? this.textPrimary,
+      textSecondary: textSecondary ?? this.textSecondary,
+      textHint: textHint ?? this.textHint,
+      textBody: textBody ?? this.textBody,
+      border: border ?? this.border,
+      borderSubtle: borderSubtle ?? this.borderSubtle,
+      fieldBg: fieldBg ?? this.fieldBg,
+      tagBg: tagBg ?? this.tagBg,
+      shimmer: shimmer ?? this.shimmer,
+      iconBg: iconBg ?? this.iconBg,
+      navBarBg: navBarBg ?? this.navBarBg,
+      shadow: shadow ?? this.shadow,
+    );
+  }
+
+  @override
+  AppColorsExtension lerp(covariant ThemeExtension<AppColorsExtension>? other, double t) {
+    if (other is! AppColorsExtension) return this;
+    return AppColorsExtension(
+      cardBg: Color.lerp(cardBg, other.cardBg, t)!,
+      textPrimary: Color.lerp(textPrimary, other.textPrimary, t)!,
+      textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
+      textHint: Color.lerp(textHint, other.textHint, t)!,
+      textBody: Color.lerp(textBody, other.textBody, t)!,
+      border: Color.lerp(border, other.border, t)!,
+      borderSubtle: Color.lerp(borderSubtle, other.borderSubtle, t)!,
+      fieldBg: Color.lerp(fieldBg, other.fieldBg, t)!,
+      tagBg: Color.lerp(tagBg, other.tagBg, t)!,
+      shimmer: Color.lerp(shimmer, other.shimmer, t)!,
+      iconBg: Color.lerp(iconBg, other.iconBg, t)!,
+      navBarBg: Color.lerp(navBarBg, other.navBarBg, t)!,
+      shadow: Color.lerp(shadow, other.shadow, t)!,
+    );
+  }
+}
+
+extension AppColorsContext on BuildContext {
+  AppColorsExtension get appColors =>
+      Theme.of(this).extension<AppColorsExtension>()!;
+  bool get isDark => Theme.of(this).brightness == Brightness.dark;
+}
+EOF
+
+# --- custom themes ---
+cat > "$PROJECT_DIR/lib/core/utils/theme/custom_themes/app_bar_theme.dart" << 'EOF'
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+class App_BarTheme {
+  App_BarTheme._();
+
+  static const AppBarTheme lightAppBarTheme = AppBarTheme(
+    foregroundColor: Colors.transparent,
+    surfaceTintColor: Colors.transparent,
+    elevation: 0,
+    backgroundColor: Colors.white,
+    iconTheme: IconThemeData(color: Colors.black),
+    titleTextStyle: TextStyle(color: Colors.black, fontSize: 20.0, fontWeight: FontWeight.bold),
+    actionsIconTheme: IconThemeData(color: Colors.black),
+    centerTitle: true,
+    systemOverlayStyle: SystemUiOverlayStyle.dark,
+  );
+
+  static const AppBarTheme darkAppBarTheme = AppBarTheme(
+    foregroundColor: Colors.transparent,
+    surfaceTintColor: Colors.transparent,
+    elevation: 0,
+    backgroundColor: Color(0xFF1E1E1E),
+    iconTheme: IconThemeData(color: Colors.white),
+    titleTextStyle: TextStyle(color: Colors.white, fontSize: 20.0, fontWeight: FontWeight.bold),
+    actionsIconTheme: IconThemeData(color: Colors.white),
+    centerTitle: true,
+    systemOverlayStyle: SystemUiOverlayStyle.light,
+  );
+}
+EOF
+
+cat > "$PROJECT_DIR/lib/core/utils/theme/custom_themes/elevated_button_theme.dart" << 'EOF'
+import 'package:flutter/material.dart';
+
+class AppElevatedButtonTheme {
+  AppElevatedButtonTheme._();
+
+  static final ElevatedButtonThemeData lightElevatedButtonTheme = ElevatedButtonThemeData(
+    style: ButtonStyle(
+      elevation: WidgetStateProperty.all(0),
+      foregroundColor: WidgetStateProperty.all(Colors.white),
+      backgroundColor: WidgetStateProperty.all(Colors.blue),
+      padding: WidgetStateProperty.all(const EdgeInsets.symmetric(vertical: 18)),
+      shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+    ),
+  );
+
+  static final ElevatedButtonThemeData darkElevatedButtonTheme = ElevatedButtonThemeData(
+    style: ButtonStyle(
+      elevation: WidgetStateProperty.all(0),
+      foregroundColor: WidgetStateProperty.all(Colors.white),
+      backgroundColor: WidgetStateProperty.all(Colors.blueGrey),
+      padding: WidgetStateProperty.all(const EdgeInsets.symmetric(vertical: 18)),
+      shape: WidgetStateProperty.all(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+    ),
+  );
+}
+EOF
+
+cat > "$PROJECT_DIR/lib/core/utils/theme/custom_themes/text_theme.dart" << 'EOF'
+import 'package:flutter/material.dart';
+
+class AppTextTheme {
+  AppTextTheme._();
+
+  static const TextTheme lightTextTheme = TextTheme(
+    headlineLarge: TextStyle(fontSize: 32.0, fontWeight: FontWeight.bold, color: Colors.black),
+    headlineMedium: TextStyle(fontSize: 28.0, fontWeight: FontWeight.w600, color: Colors.black87),
+    titleLarge: TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600, color: Colors.black87),
+    titleMedium: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500, color: Colors.black87),
+    bodyLarge: TextStyle(fontSize: 16.0, fontWeight: FontWeight.normal, color: Colors.black87),
+    bodyMedium: TextStyle(fontSize: 14.0, fontWeight: FontWeight.normal, color: Colors.black87),
+    bodySmall: TextStyle(fontSize: 12.0, fontWeight: FontWeight.normal, color: Colors.black54),
+    labelLarge: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold, color: Colors.black),
+  );
+
+  static const TextTheme darkTextTheme = TextTheme(
+    headlineLarge: TextStyle(fontSize: 32.0, fontWeight: FontWeight.bold, color: Colors.white),
+    headlineMedium: TextStyle(fontSize: 28.0, fontWeight: FontWeight.w600, color: Colors.white70),
+    titleLarge: TextStyle(fontSize: 22.0, fontWeight: FontWeight.w600, color: Colors.white70),
+    titleMedium: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500, color: Colors.white70),
+    bodyLarge: TextStyle(fontSize: 16.0, fontWeight: FontWeight.normal, color: Colors.white70),
+    bodyMedium: TextStyle(fontSize: 14.0, fontWeight: FontWeight.normal, color: Colors.white60),
+    bodySmall: TextStyle(fontSize: 12.0, fontWeight: FontWeight.normal, color: Colors.white54),
+    labelLarge: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold, color: Colors.white),
+  );
+}
+EOF
+
+cat > "$PROJECT_DIR/lib/core/utils/theme/custom_themes/text_field_theme.dart" << 'EOF'
+import 'package:flutter/material.dart';
+
+class AppTextFormFieldTheme {
+  AppTextFormFieldTheme._();
+
+  static final InputDecorationTheme lightInputDecorationTheme = InputDecorationTheme(
+    errorMaxLines: 3,
+    prefixIconColor: Colors.grey,
+    suffixIconColor: Colors.grey,
+    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Colors.grey)),
+    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Colors.grey)),
+    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Colors.black)),
+    errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Colors.red)),
+  );
+
+  static const InputDecorationTheme darkInputDecorationTheme = InputDecorationTheme(
+    errorMaxLines: 3,
+    prefixIconColor: Colors.grey,
+    suffixIconColor: Colors.grey,
+    border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14)), borderSide: BorderSide(color: Colors.grey)),
+    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14)), borderSide: BorderSide(color: Colors.grey)),
+    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14)), borderSide: BorderSide(color: Colors.white)),
+    errorBorder: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(14)), borderSide: BorderSide(color: Colors.redAccent)),
+  );
+}
+EOF
+
+# --- theme.dart ---
+cat > "$PROJECT_DIR/lib/core/utils/theme/theme.dart" << 'EOF'
+import 'package:flutter/material.dart';
+
+import 'app_colors_extension.dart';
+import 'custom_themes/app_bar_theme.dart';
+import 'custom_themes/elevated_button_theme.dart';
+import 'custom_themes/text_field_theme.dart';
+import 'custom_themes/text_theme.dart';
+import '../constants/colors.dart';
+
+class AppTheme {
+  AppTheme._();
+
+  static const _primaryBlue = Color(0xFF0F58BD);
+
+  static ThemeData lightTheme = ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.light,
+    primaryColor: _primaryBlue,
+    colorScheme: const ColorScheme.light(
+      primary: _primaryBlue,
+      onPrimary: Colors.white,
+      secondary: AppColors.secondary,
+      surface: Colors.white,
+      onSurface: Color(0xFF111418),
+      error: AppColors.error,
+    ),
+    scaffoldBackgroundColor: AppColors.backgroundLight,
+    textTheme: AppTextTheme.lightTextTheme,
+    elevatedButtonTheme: AppElevatedButtonTheme.lightElevatedButtonTheme,
+    appBarTheme: App_BarTheme.lightAppBarTheme,
+    inputDecorationTheme: AppTextFormFieldTheme.lightInputDecorationTheme,
+    extensions: const [AppColorsExtension.light],
+  );
+
+  static ThemeData darkTheme = ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.dark,
+    primaryColor: _primaryBlue,
+    colorScheme: const ColorScheme.dark(
+      primary: _primaryBlue,
+      onPrimary: Colors.white,
+      secondary: AppColors.secondary,
+      surface: Color(0xFF1E1E1E),
+      onSurface: Color(0xFFE2E8F0),
+      error: AppColors.error,
+    ),
+    scaffoldBackgroundColor: AppColors.backgroundDark,
+    textTheme: AppTextTheme.darkTextTheme,
+    elevatedButtonTheme: AppElevatedButtonTheme.darkElevatedButtonTheme,
+    appBarTheme: App_BarTheme.darkAppBarTheme,
+    inputDecorationTheme: AppTextFormFieldTheme.darkInputDecorationTheme,
+    extensions: const [AppColorsExtension.dark],
+  );
+}
+EOF
+
+# --- theme_controller.dart ---
+cat > "$PROJECT_DIR/lib/core/controller/theme_controller.dart" << 'EOF'
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../services/storage_service.dart';
+
+class ThemeController extends GetxController {
+  final _mode = ThemeMode.system.obs;
+
+  ThemeMode get themeMode => _mode.value;
+
+  @override
+  void onInit() {
+    super.onInit();
+    final saved = StorageService.themeMode;
+    _mode.value = switch (saved) {
+      'light' => ThemeMode.light,
+      'dark' => ThemeMode.dark,
+      _ => ThemeMode.system,
+    };
+  }
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    _mode.value = mode;
+    Get.changeThemeMode(mode);
+    final label = switch (mode) {
+      ThemeMode.light => 'light',
+      ThemeMode.dark => 'dark',
+      _ => 'system',
+    };
+    await StorageService.setThemeMode(label);
+  }
+
+  Future<void> toggle() async {
+    final next = switch (_mode.value) {
+      ThemeMode.system => ThemeMode.light,
+      ThemeMode.light => ThemeMode.dark,
+      ThemeMode.dark => ThemeMode.system,
+    };
+    await setThemeMode(next);
+  }
+
+  String get label => switch (_mode.value) {
+    ThemeMode.light => 'Light',
+    ThemeMode.dark => 'Dark',
+    _ => 'System',
+  };
+
+  IconData get icon => switch (_mode.value) {
+    ThemeMode.light => Icons.light_mode,
+    ThemeMode.dark => Icons.dark_mode,
+    _ => Icons.brightness_auto,
+  };
+}
+EOF
+
+# --- controller_binder.dart ---
+cat > "$PROJECT_DIR/lib/core/bindings/controller_binder.dart" << EOF
+import 'package:get/get.dart';
+
+import '../controller/theme_controller.dart';
+import '../../features/home/controller/home_controller.dart';
+
+class ControllerBinder extends Bindings {
+  @override
+  void dependencies() {
+    Get.lazyPut<ThemeController>(() => ThemeController(), fenix: true);
+    Get.lazyPut<HomeController>(() => HomeController(), fenix: true);
+  }
+}
+EOF
+
+# --- home_controller.dart ---
+cat > "$PROJECT_DIR/lib/features/home/controller/home_controller.dart" << 'EOF'
+import 'package:get/get.dart';
+
+class HomeController extends GetxController {
+  final counter = 0.obs;
+
+  void increment() => counter.value++;
+  void decrement() {
+    if (counter.value > 0) counter.value--;
+  }
+  void reset() => counter.value = 0;
+}
+EOF
+
+# --- home_screen.dart ---
+cat > "$PROJECT_DIR/lib/features/home/views/screens/home_screen.dart" << EOF
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+
+import '../../../../core/common/styles/global_text_style.dart';
+import '../../../../core/controller/theme_controller.dart';
+import '../../../../core/utils/theme/app_colors_extension.dart';
+import '../../controller/home_controller.dart';
+
+class HomeScreen extends GetView<HomeController> {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.appColors;
+    final themeCtrl = Get.find<ThemeController>();
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: c.cardBg,
+        elevation: 0,
+        title: Text(
+          '${APP_DISPLAY_NAME}',
+          style: getTextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: c.textPrimary,
+          ),
+        ),
+        centerTitle: true,
+        actions: [
+          Obx(() => IconButton(
+                onPressed: themeCtrl.toggle,
+                icon: Icon(themeCtrl.icon, color: c.textPrimary),
+              )),
+        ],
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Counter',
+              style: getTextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: c.textSecondary,
+              ),
+            ),
+            SizedBox(height: 8.h),
+            Obx(() => Text(
+                  '\${controller.counter.value}',
+                  style: getTextStyle(
+                    fontSize: 64,
+                    fontWeight: FontWeight.w700,
+                    color: c.textPrimary,
+                  ),
+                )),
+            SizedBox(height: 32.h),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _CounterButton(
+                  icon: Icons.remove,
+                  onTap: controller.decrement,
+                  color: const Color(0xFFEF4444),
+                ),
+                SizedBox(width: 16.w),
+                _CounterButton(
+                  icon: Icons.refresh,
+                  onTap: controller.reset,
+                  color: c.textSecondary,
+                ),
+                SizedBox(width: 16.w),
+                _CounterButton(
+                  icon: Icons.add,
+                  onTap: controller.increment,
+                  color: const Color(0xFF0F58BD),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CounterButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final Color color;
+
+  const _CounterButton({
+    required this.icon,
+    required this.onTap,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 56.w,
+        height: 56.w,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        alignment: Alignment.center,
+        child: Icon(icon, color: Colors.white, size: 28.sp),
+      ),
+    );
+  }
+}
+EOF
+
+# --- app_routes.dart ---
+cat > "$PROJECT_DIR/lib/routes/app_routes.dart" << EOF
+import 'package:get/get.dart';
+
+import '../features/home/views/screens/home_screen.dart';
+
+class AppRoute {
+  static String homeScreen = "/homeScreen";
+
+  static String getHomeScreen() => homeScreen;
+
+  static List<GetPage> routes = [
+    GetPage(name: homeScreen, page: () => const HomeScreen()),
+  ];
+}
+EOF
+
+# --- app.dart ---
+cat > "$PROJECT_DIR/lib/app.dart" << EOF
+import 'package:${PKG}/routes/app_routes.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'core/bindings/controller_binder.dart';
+import 'core/services/storage_service.dart';
+import 'core/utils/theme/theme.dart';
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.transparent,
+      ),
+    );
+
+    return ScreenUtilInit(
+      designSize: const Size(390, 884),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      builder: (_, child) {
+        return GetMaterialApp(
+          debugShowCheckedModeBanner: false,
+          initialRoute: AppRoute.getHomeScreen(),
+          getPages: AppRoute.routes,
+          initialBinding: ControllerBinder(),
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: _initialThemeMode(),
+        );
+      },
+    );
+  }
+
+  ThemeMode _initialThemeMode() {
+    final saved = StorageService.themeMode;
+    return switch (saved) {
+      'light' => ThemeMode.light,
+      'dark' => ThemeMode.dark,
+      _ => ThemeMode.system,
+    };
+  }
+}
+EOF
+
+# --- main.dart ---
+cat > "$PROJECT_DIR/lib/main.dart" << EOF
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+import 'app.dart';
+import 'core/services/storage_service.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.edgeToEdge,
+    overlays: SystemUiOverlay.values,
+  );
+  await dotenv.load(fileName: '.env');
+  await StorageService.init();
+  runApp(const MyApp());
+}
+EOF
+
+echo -e "  ${CHECK} ${G}Core files generated${NC}"
+
+# ─── Step 8: Update pubspec.yaml ─────────────────────────────
+echo -e "${M}${BOLD}Updating dependencies...${NC}"
+
+# Read existing pubspec and inject dependencies
+cat > "$PROJECT_DIR/pubspec.yaml" << PUBEOF
+name: ${PKG}
+description: "A Flutter project with GetX boilerplate."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  http: ^1.6.0
+  intl: ^0.20.2
+  url_launcher: ^6.3.2
+  flutter_screenutil: ^5.9.3
+  google_fonts: ^8.0.2
+  shared_preferences: ^2.5.5
+  get: ^4.7.3
+  iconsax_flutter: ^1.0.1
+  skeletonizer: ^2.1.3
+  awesome_snackbar_content: ^0.1.8
+  flutter_dotenv: ^5.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - .env
+PUBEOF
+
+echo -e "  ${CHECK} ${G}pubspec.yaml configured${NC}"
+
+# ─── Step 9: Install Dependencies ────────────────────────────
+echo -e "${M}${BOLD}Installing dependencies...${NC}"
+echo -e "  ${DIM}Running flutter pub get...${NC}"
+PUB_OUTPUT=$(cd "$PROJECT_DIR" && flutter pub get 2>&1)
+PUB_EXIT=$?
+
+if [ $PUB_EXIT -eq 0 ]; then
+  echo -e "  ${CHECK} ${G}Dependencies installed${NC}"
+else
+  echo -e "  ${CROSS} ${R}Failed to install dependencies${NC}"
+  echo -e "  ${DIM}${PUB_OUTPUT}${NC}"
+  echo -e "  ${Y}Run 'cd ${PROJECT_NAME} && flutter pub get' manually.${NC}"
+fi
+
+# ─── Step 10: Update App Display Name ────────────────────────
+echo -e "${M}${BOLD}Setting app display name...${NC}"
+
+# Android
+if [ -f "$PROJECT_DIR/android/app/src/main/AndroidManifest.xml" ]; then
+  sed -i '' "s/android:label=\"${PKG}\"/android:label=\"${APP_DISPLAY_NAME}\"/" \
+    "$PROJECT_DIR/android/app/src/main/AndroidManifest.xml"
+  echo -e "  ${CHECK} ${G}Android label set${NC}"
+fi
+
+# iOS
+if [ -f "$PROJECT_DIR/ios/Runner/Info.plist" ]; then
+  # Update CFBundleDisplayName if present, otherwise CFBundleName
+  sed -i '' "/<key>CFBundleName<\/key>/{ n; s/<string>.*<\/string>/<string>${APP_DISPLAY_NAME}<\/string>/; }" \
+    "$PROJECT_DIR/ios/Runner/Info.plist"
+  echo -e "  ${CHECK} ${G}iOS name set${NC}"
+fi
+
+echo ""
+
+# ─── Done ─────────────────────────────────────────────────────
+echo -e "${G}${BOLD}╔══════════════════════════════════════════════════╗${NC}"
+echo -e "${G}${BOLD}║${NC}  ${CHECK} ${W}${BOLD}Project created successfully!${NC}                  ${G}${BOLD}║${NC}"
+echo -e "${G}${BOLD}╚══════════════════════════════════════════════════╝${NC}"
+echo ""
+echo -e "  ${ARROW} ${W}cd ${PROJECT_NAME}${NC}"
+echo -e "  ${ARROW} ${W}flutter run${NC}"
+echo ""
+echo -e "  ${DIM}Project structure:${NC}"
+echo -e "  ${DIM}├── lib/${NC}"
+echo -e "  ${DIM}│   ├── app.dart${NC}"
+echo -e "  ${DIM}│   ├── main.dart${NC}"
+echo -e "  ${DIM}│   ├── core/          ${C}(services, theme, helpers)${NC}"
+echo -e "  ${DIM}│   ├── features/      ${C}(home counter app)${NC}"
+echo -e "  ${DIM}│   └── routes/        ${C}(GetX routing)${NC}"
+echo -e "  ${DIM}└── .env               ${C}(BASE_URL config)${NC}"
+echo ""
+echo -e "  ${Y}Happy coding!${NC} ${M}🚀${NC}"
+echo ""
